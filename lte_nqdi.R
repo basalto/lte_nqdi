@@ -1,5 +1,7 @@
 library(ggplot2)
 library(dplyr)
+library(scales)
+library(gridExtra)
 
 setwd("/home/rjdinis/development/R/lte_nqdi")
 source("which_nonnum.R")
@@ -51,11 +53,12 @@ levels(lte_meas_report$BandIndicator)[levels(lte_meas_report$BandIndicator)=="20
 
 ggplot(lte_meas_report, aes(x=Cidade)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red")
 
-ggplot(lte_meas_report, aes(x=RSRP)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red")
-h2 <- ggplot(lte_meas_report, aes(x=RSRQ)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red")
-h3 <- ggplot(lte_meas_report, aes(x=SINR0)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fidll_gradient("Count", low = "green", high = "red")
-#h4 <- ggplot(lte_meas_report, aes(x=CQI)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red")
-multiplot(h1, h2, h3, cols=3)
+(h1 <- ggplot(lte_meas_report, aes(x=RSRP)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red"))
+(h2 <- ggplot(lte_meas_report, aes(x=RSRQ)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red"))
+(h3 <- ggplot(lte_meas_report, aes(x=RSSI)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red"))
+(h4 <- ggplot(lte_meas_report, aes(x=SINR0)) + geom_histogram(aes(fill = ..count..), na.rm = TRUE) + scale_fill_gradient("Count", low = "green", high = "red"))
+(m1 <- arrangeGrob(h1, h2, h3, h4, ncol=2, nrow=2))
+(ggsave(m1, file=paste0("./Charts/Histograms_RF_DL.jpeg"), width=20, height=10, dpi=100))
 
 # Scatter charts of RF Signal
 ggplot(lte_meas_report, aes(x=RSRP, y=SINR0)) + 
@@ -88,10 +91,11 @@ ggplot(subset(lte_meas_report, (BandIndicator != "NA")), aes(x=RSRP, y=RSRQ)) +
   xlab("RSRP (dBm)") + ylab("RSRQ (dB)") + 
   facet_grid(. ~ BandIndicator)
 
-p1 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=SINR0)) + geom_point() + xlab("RSRP (dBm)") + ylab("SINR (dB)") + ggtitle("RSRP vs SINR") + facet_wrap(~ Rede, ncol=3)
-p2 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=SINR0)) + geom_point() + xlab("RSRP (dBm)") + ylab("SINR (dB)") + ggtitle("RSRP vs SINR") + facet_grid(BandIndicator ~ DL_EARFCN)
-p3 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=RSRQ)) + geom_point() + xlab("RSRP (dBm)") + ylab("RSRQ (dB)") + ggtitle("RSRP vs RSRQ") + facet_wrap(direction ~ DL_EARFCN, ncol=2)
+(p1 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=SINR0)) + geom_point(size=0.9, colour="red") + xlab("RSRP (dBm)") + ylab("SINR (dB)") + ggtitle("RSRP vs SINR") + facet_wrap(~ Rede, ncol=3))
+(p2 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=SINR0)) + geom_point(size=0.9, colour="red") + xlab("RSRP (dBm)") + ylab("SINR (dB)") + ggtitle("RSRP vs SINR") + facet_grid(BandIndicator ~ DL_EARFCN))
+(p3 <- ggplot(subset(lte_meas_report, (Rede == "93")), aes(x=RSRP, y=RSRQ)) + geom_point(size=0.9, colour="red") + xlab("RSRP (dBm)") + ylab("RSRQ (dB)") + ggtitle("RSRP vs RSRQ") + facet_wrap(direction ~ DL_EARFCN, ncol=2))
 
+(p4 <- qplot(lte_meas_report$RSRP, stat = "ecdf", geom = "step", xlab="LTE Throughput (Kbps)"))
 
 hsdpa_ie = select(hsdpa, FTP, RNC, CQI, Codes, DTX=DTXRate, Throughput)
 hsdpa_by_ftp <- group_by(hsdpa_ie, FTP)
